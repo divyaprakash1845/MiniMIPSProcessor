@@ -21,7 +21,6 @@ This repository contains the RTL source code, testbenches, and bare-metal C-firm
 │   │   │   ├── GraphAccelerator.v   
 │   │   │   ├── MatrixAccelerator.v  
 │   │   │   └── VectorAccelerator.v  
-│   │   ├── Adder.v                # Structural Adder Module
 │   │   ├── Computer.v             # Top-Level CPU & Memory Wrapper
 │   │   ├── Memory.v               # 4KB Data & Instruction Memory
 │   │   ├── Processor.v            # 3-Cycle MIPS CPU FSM Controller
