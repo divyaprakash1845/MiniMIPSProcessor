@@ -1,5 +1,7 @@
 // defs.vh
 `define OP_REG 6'h0
+`define OP_J 6'h2
+`define OP_BEQ 6'h4
 `define OP_ADDI 6'h8
 `define OP_ANDI 6'hc
 `define OP_ORI 6'hd
