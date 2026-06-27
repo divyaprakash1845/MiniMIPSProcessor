@@ -1,35 +1,49 @@
 `timescale 1ns / 1ps
-module tb_computer;
-    reg clk, reset, done_storing, copied_io_regs, input_value_valid;
-    reg [31:0] ins_addr, ins, input_value;
-    wire done, io_stall, waiting_for_input;
-    wire [31:0] io_reg_index, out0, out1, out2, out3, total_cycles, proc_cycles;
+`include "defs.vh"
 
-    Computer dut (
-        .clk(clk), .reset(reset), .done_storing(done_storing), .copied_io_regs(copied_io_regs),
-        .ins_addr(ins_addr), .ins(ins), .input_value(input_value), .input_value_valid(input_value_valid),
-        .done(done), .io_stall(io_stall), .io_reg_index(io_reg_index),
-        .out0(out0), .out1(out1), .out2(out2), .out3(out3),
-        .total_cycles(total_cycles), .proc_cycles(proc_cycles), .waiting_for_input(waiting_for_input)
+module tb_computer;
+    reg clk, reset, done_storing;
+    reg [7:0] ins_addr;
+    reg [31:0] ins;
+    wire done;
+    wire [31:0] out_reg1, out_reg2, out_reg3, out_reg4, total_cycles, proc_cycles;
+
+    Computer uut(
+        .reset(reset),
+        .ins_addr(ins_addr),
+        .ins(ins),
+        .clk(clk),
+        .done_storing(done_storing),
+        .done(done),
+        .out_reg1(out_reg1),
+        .out_reg2(out_reg2),
+        .out_reg3(out_reg3),
+        .out_reg4(out_reg4),
+        .total_cycles(total_cycles),
+        .proc_cycles(proc_cycles)
     );
 
     always #5 clk = ~clk;
 
     initial begin
-        clk = 0; reset = 1; done_storing = 0; copied_io_regs = 0; input_value_valid = 0;
+        clk = 0; reset = 1; done_storing = 0; ins_addr = 0; ins = 0;
         #20 reset = 0;
-
-        // Simple Test: print integer 5
-        ins_addr = 0; ins = 32'h20020005; #10; // addi $2, $0, 5
-        ins_addr = 1; ins = 32'h200103EC; #10; // addi $1, $0, 1004 (print)
-        ins_addr = 2; ins = 32'h0020100C; #10; // syscall $1, $2
-        ins_addr = 3; ins = 32'h200103E9; #10; // addi $1, $0, 1001 (exit)
-        ins_addr = 4; ins = 32'h0020000C; #10; // syscall $1, $0
         
-        done_storing = 1;
+        // Let's load instructions to test the 3-cycle processor:
+        // Instruction 0: addi $r1, $r0, 1001 (0x200103E9) (Loads SYS_exit into $r1)
+        // Instruction 1: addi $r2, $r0, 42   (0x2002002A) (Loads 42 into $r2)
+        // Instruction 2: add  $r3, $r1, $r2  (0x00221820) (Adds $r1 and $r2)
+        // Instruction 3: syscall (with rs=$r1) (0x0020000C) (Triggers SYS_exit)
+
+        @(posedge clk); ins_addr = 0; ins = 32'h200103E9;
+        @(posedge clk); ins_addr = 1; ins = 32'h2002002A;
+        @(posedge clk); ins_addr = 2; ins = 32'h00221820;
+        @(posedge clk); ins_addr = 3; ins = 32'h0020000C;
+        
+        @(posedge clk); done_storing = 1;
 
         wait(done);
-        $display("Simulation Complete. Output: %d", out0);
+        $display("Processor halted successfully! Total cycles: %d, Proc cycles: %d", total_cycles, proc_cycles);
         $finish;
     end
 endmodule

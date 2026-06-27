@@ -1,35 +1,80 @@
+`timescale 1ns / 1ps
+`include "defs.vh"
+
 module Computer(
-    input clk, input reset, input done_storing, input copied_io_regs, input [31:0] ins_addr, input [31:0] ins,
-    input [31:0] input_value, input input_value_valid,
-    output done, output io_stall, output [31:0] io_reg_index, output [31:0] out0, out1, out2, out3,
-    output [31:0] total_cycles, output [31:0] proc_cycles, output waiting_for_input
+    input reset, 
+    input [7:0] ins_addr, 
+    input [31:0] ins, 
+    input clk, 
+    input done_storing, 
+    output reg done,
+    output [31:0] out_reg1, 
+    output [31:0] out_reg2, 
+    output [31:0] out_reg3, 
+    output [31:0] out_reg4, 
+    output [31:0] total_cycles, 
+    output [31:0] proc_cycles
 );
-    reg [31:0] imem [0:255];
-    wire [31:0] pc;
+
+    wire [7:0] pc;                 // Output of Processor [cite: 374, 375]
+    wire [31:0] ins_fetched;       // Output of Memory [cite: 376]
+    wire ins_mem_command;          // Input to Memory [cite: 376]
     
-    wire [7:0] data_addr;
-    wire data_addr_valid;
-    wire [1:0] data_mem_command;
-    wire [31:0] store_value;
+    reg [31:0] counter_total;      // Counts total_cycles [cite: 377, 378]
+    reg [31:0] counter_proc;       // Counts proc_cycles [cite: 379, 380]
+    wire halt;                     // Output of Processor [cite: 381, 382]
 
-    wire [7:0] active_addr = data_addr_valid ? data_addr : pc[7:0];
-    wire [31:0] mem_data_out = imem[active_addr];
+    // Instantiate Memory [cite: 387]
+    // Write enable is active only when not resetting and not done storing
+    // Address is either the external ins_addr (during loading) or PC (during execution)
+    Memory mem(
+        ~reset & ~done_storing, 
+        clk,
+        ins_mem_command, 
+        done_storing ? pc : ins_addr, 
+        ins,
+        ins_fetched
+    );
 
+    // Instantiate Processor [cite: 388]
+    // Processor is held in reset (~done_storing) while instructions are being loaded
+    Processor proc(
+        clk, 
+        halt, 
+        ~done_storing, 
+        pc,
+        ins_fetched, 
+        out_reg1, 
+        out_reg2, 
+        out_reg3, 
+        out_reg4
+    );
+
+    // Continuous assignments [cite: 390, 391, 392]
+    assign total_cycles = counter_total;
+    assign proc_cycles = counter_proc;
+    assign ins_mem_command = done_storing ? `READ_COMMAND : `WRITE_COMMAND;
+
+    // Sequential logic for cycle counting and completion [cite: 396]
     always @(posedge clk) begin
-        if (!done_storing && !reset) begin
-            imem[ins_addr[7:0]] <= ins;
+        if (reset) begin
+            counter_total <= 32'b0; // [cite: 398]
+            counter_proc  <= 32'b0; // [cite: 399]
+            done          <= 1'b0;  // [cite: 400]
         end
-        else if (data_addr_valid && (data_mem_command == 1 || data_mem_command == 2)) begin
-            imem[data_addr] <= store_value;
+        else begin
+            // The system is done when the processor signals a halt
+            done <= halt; 
+            
+            // Total cycles count up every clock cycle after reset
+            counter_total <= counter_total + 1; 
+            
+            // Processor cycles only count when the processor is actively running
+            // (after storing is done and before it halts)
+            if (done_storing && !halt) begin
+                counter_proc <= counter_proc + 1; 
+            end
         end
     end
 
-    Processor cpu(
-        .clk(clk), .reset(reset || !done_storing), .copied_io_regs(copied_io_regs),
-        .input_value(input_value), .input_value_valid(input_value_valid), .mem_data_in(mem_data_out),
-        .pc(pc), .done(done), .io_stall(io_stall), .io_reg_index(io_reg_index),
-        .out0(out0), .out1(out1), .out2(out2), .out3(out3), .total_cycles(total_cycles), 
-        .proc_cycles(proc_cycles), .waiting_for_input(waiting_for_input),
-        .data_addr(data_addr), .data_addr_valid(data_addr_valid), .data_mem_command(data_mem_command), .store_value(store_value)
-    );
 endmodule
