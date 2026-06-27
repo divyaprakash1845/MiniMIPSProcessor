@@ -1,4 +1,4 @@
-# Mini MIPS Processor & Hardware Accelerators
+# Mini MIPS Processor 
 
 **Tech Stack:** Verilog HDL, C, Xilinx Vivado, Vitis IDE, AXI4 Memory-Mapped IP, PYNQ-Z2 (ZYNQ-7000 SoC)
 
@@ -65,7 +65,7 @@ Three parallel accelerators were synthesized to exploit FPGA fabric density. The
 | **Matrix-Vector Mul** | Row inner products via 4-level structural tree reduction (7 cycles per row). | **~16x** |
 | **Graph Pathfinding** | Boolean matrix multiplication ($A^k$) using packed 32-bit bitwise-ANDs. | **~1000x** |
 
-## 🚀 Getting Started
+## Getting Started
 1. Create a new Vivado RTL project targeting the PYNQ-Z2 board.
 2. Add the source files from `src/hdl/`.
 3. Export the bitstream (`.xsa`) to Xilinx Vitis IDE.
