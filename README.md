@@ -13,28 +13,32 @@ This repository contains the RTL source code, testbenches, and bare-metal C-firm
 ├── src/
 │   ├── hdl/                       # Hardware Description (Verilog)
 │   │   ├── primitives/            # Custom Math Primitives Library
-│   │   │   ├── Full_Adder.v            # Structural Ripple-Carry Logic
-│   │   │   ├── multiplier.v       # Iterative Multiplier
+│   │   │   ├── Full_Adder.v       # Structural Ripple-Carry Logic
+│   │   │   ├── comparator.v       # 1-bit Comparator
 │   │   │   ├── divider.v          # Iterative Divider
-│   │   │   └── comparator.v       # 1-bit Comparator
-│   │   ├── alu.v                  # Combinational Arithmetic Logic Unit
-│   │   ├── defs.vh                # Global Opcode & Func Macro Definitions
-│   │   ├── Memory.v               # 4KB Data & Instruction Memory
-│   │   ├── RegisterFile.v         # 128-Byte MIPS Register File
-│   │   ├── Processor.v            # 3-Cycle MIPS CPU FSM Controller
+│   │   │   └── multiplier.v       # Iterative Multiplier
+│   │   ├── accelerators/          # AXI-Lite Hardware Accelerators
+│   │   │   ├── GraphAccelerator.v   
+│   │   │   ├── MatrixAccelerator.v  
+│   │   │   └── VectorAccelerator.v  
+│   │   ├── Adder.v                # Structural Adder Module
 │   │   ├── Computer.v             # Top-Level CPU & Memory Wrapper
-│   │   └── accelerators/          # AXI-Lite Hardware Accelerators
-│   │       ├── VectorAccelerator.v  
-│   │       ├── MatrixAccelerator.v  
-│   │       └── GraphAccelerator.v   
+│   │   ├── Memory.v               # 4KB Data & Instruction Memory
+│   │   ├── Processor.v            # 3-Cycle MIPS CPU FSM Controller
+│   │   ├── RegisterFile.v         # 128-Byte MIPS Register File
+│   │   ├── alu.v                  # Combinational Arithmetic Logic Unit
+│   │   └── defs.vh                # Global Opcode & Func Macro Definitions
 │   ├── sw/                        # Firmware (Vitis C Applications)
 │   │   └── accelerators/          
-│   │       ├── vector_app.c       
+│   │       ├── graph_app.c        
 │   │       ├── matrix_app.c       
-│   │       └── graph_app.c        
+│   │       └── vector_app.c       
 │   └── tb/                        # Behavioral Testbenches
-│       ├── tb_computer.v          
-│       └── accelerators/          
+│       ├── accelerators/          
+│       │   ├── tb_GraphAccelerator.v   
+│       │   ├── tb_MatrixAccelerator.v  
+│       │   └── tb_VectorAccelerator.v  
+│       └── tb_computer.v          
 ├── IP_PACKAGING_GUIDE.md          # Guide for AXI-Lite Memory-Mapped IP Packaging
 └── README.md
 ```
